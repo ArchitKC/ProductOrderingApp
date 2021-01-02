@@ -11,15 +11,12 @@ namespace ProductOrderingApp.Areas.Admin.Controllers
         // GET: Admin/Pages
         public ActionResult Index()
         {
-
             List<PagesViewModel> pageLists;
-
-
-            using(ShoppingCart db = new ShoppingCart())
+            using (ShoppingCart db = new ShoppingCart())
             {
                 pageLists = db.PagesData.ToArray()
-                    .OrderBy(x=>x.Sorting)
-                    .Select(x=>new PagesViewModel(x))
+                    .OrderBy(x => x.Sorting)
+                    .Select(x => new PagesViewModel(x))
                     .ToList();
             }
             //Return view with list
@@ -44,7 +41,7 @@ namespace ProductOrderingApp.Areas.Admin.Controllers
             }
 
             using (ShoppingCart db = new ShoppingCart())
-            {          
+            {
                 //Declare Slug
                 string slug;
 
@@ -66,7 +63,7 @@ namespace ProductOrderingApp.Areas.Admin.Controllers
 
                 //Make sure the title and slug are unique
                 if (db.PagesData.Any(x => x.Title == pageAddData.Title) ||
-                                     db.PagesData.Any(x=>x.Slug == slug))
+                                     db.PagesData.Any(x => x.Slug == slug))
                 {
                     ModelState.AddModelError("", "The Title or the Slug already exists");
                     return View(pageAddData);
@@ -81,7 +78,6 @@ namespace ProductOrderingApp.Areas.Admin.Controllers
                 //Save DTO
                 db.PagesData.Add(pageDto);
                 db.SaveChanges();
-
             }
 
             //Set TempData Message
@@ -104,7 +100,7 @@ namespace ProductOrderingApp.Areas.Admin.Controllers
 
                 //Confirm the page exists
                 if (pagedto != null)
-                {                
+                {
                     //Init pageViewModel
                     pageVM = new PagesViewModel(pagedto);
                 }
@@ -113,7 +109,6 @@ namespace ProductOrderingApp.Areas.Admin.Controllers
                     return Content("The page doesn't exists");
                 }
             }
-
             //Return view with model
             return View(pageVM);
         }
@@ -177,6 +172,114 @@ namespace ProductOrderingApp.Areas.Admin.Controllers
 
             //Redirect
             return RedirectToAction("EditPage");
+        }
+
+        //POST: Admin/Pages/PageDetails/Id
+        public ActionResult PageDetails(int Id)
+        {
+            //Declare PageVM
+            PagesViewModel pageDetails;
+
+            using (ShoppingCart db = new ShoppingCart())
+            {
+                //Get the page
+                PageDTO myPage = db.PagesData.Find(Id);
+
+                //Confirm the page exists
+                if (myPage == null)
+                    return Content("The page doesn't exists");
+
+                pageDetails = new PagesViewModel(myPage);
+                //Init PageVM
+            }
+            return View(pageDetails);
+        }
+
+        //GET: Admin/Pages/DeletePage/Id
+        public ActionResult DeletePage(int Id)
+        {
+            using (ShoppingCart db = new ShoppingCart())
+            {
+                //Get the page
+                PageDTO deletePage = db.PagesData.Find(Id);
+
+                //Remove the page
+                if (deletePage.Title != "Home")
+                    db.PagesData.Remove(deletePage);
+
+                //save changes
+                db.SaveChanges();
+            }
+            return RedirectToAction("Index");
+        }
+
+        //GET: Admin/Pages/ReorderPages/Id
+        [HttpPost]
+        public void ReorderPages(int[] id)
+        {
+            using (ShoppingCart db = new ShoppingCart())
+            {
+                //set initial count
+                int count = 1;
+
+                // Declare PageDTO
+                PageDTO dto;
+
+                // Set sorting for each page
+                foreach (var pageId in id)
+                {
+                    dto = db.PagesData.Find(pageId);
+                    dto.Sorting = count;
+
+                    db.SaveChanges();
+
+                    count++;
+                }
+            }
+        }
+
+        //GET:  Admin/Pages/EditSideBar
+        [HttpGet]
+        public ActionResult EditSideBar()
+        {
+            //Declare Model
+            SideBarViewModel sideBarVM;
+
+            using (ShoppingCart db = new ShoppingCart())
+            {
+                //Get DTO
+                SideBarDTO sideBarDTO = db.SideBarData.Find(1);
+
+                //Init Mode
+                sideBarVM = new SideBarViewModel(sideBarDTO);
+            }
+
+            //Return View with Model
+            return View(sideBarVM);
+        }
+
+        //POST:  Admin/Pages/EditSideBar
+        [HttpPost]
+        public ActionResult EditSideBar(SideBarViewModel sideBarVM)
+        {
+            using (ShoppingCart db = new ShoppingCart())
+            {
+                //Get the DTO
+                SideBarDTO mySideBarDTO = db.SideBarData.Find(1);
+
+                //DTO the body
+                mySideBarDTO.Body = sideBarVM.Body;
+
+                //Save
+                //db.SideBarData.Add(mySideBarDTO);
+                db.SaveChanges();
+            }
+
+            //Set the Temp Message
+            TempData["SM"] = "Side bar added succesfully";
+
+            //Redirect
+            return RedirectToAction("EditSideBar");
         }
     }
 }
