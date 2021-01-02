@@ -87,10 +87,11 @@ namespace ProductOrderingApp.Areas.Admin.Controllers
             //Set TempData Message
             TempData["SM"] = "The page has been added";
             //Redirect
-            return RedirectToAction("Index");
+            return RedirectToAction("AddPage");
         }
 
         //GET: Admin/Pages/EditPage/Id
+        [HttpGet]
         public ActionResult EditPage(int id)
         {
             //Declare pageViewModel
@@ -118,30 +119,64 @@ namespace ProductOrderingApp.Areas.Admin.Controllers
         }
 
         //POST: Admin/Pages/EditPage/Id
+        [HttpPost]
         public ActionResult EditPage(PagesViewModel editPageDetail)
         {
             //Check Model state
+            if (!ModelState.IsValid)
+            {
+                return View(editPageDetail);
+            }
 
-            //Get pageId
+            using (ShoppingCart db = new ShoppingCart())
+            {
+                // Get page id
+                int id = editPageDetail.Id;
 
-            //Declare slug
+                // Init slug
+                string slug = "home";
 
-            //Get the page
+                // Get the page
+                PageDTO dto = db.PagesData.Find(id);
 
-            //DTO the title
+                // DTO the title
+                dto.Title = editPageDetail.Title;
 
-            //Check for slug and set if needed
+                // Check for slug and set it if need be
+                if (editPageDetail.Slug != "home")
+                {
+                    if (string.IsNullOrWhiteSpace(editPageDetail.Slug))
+                    {
+                        slug = editPageDetail.Title.Replace(" ", "-").ToLower();
+                    }
+                    else
+                    {
+                        slug = editPageDetail.Slug.Replace(" ", "-").ToLower();
+                    }
+                }
 
-            //Make sure the title and slug are unique
+                // Make sure title and slug are unique
+                if (db.PagesData.Where(x => x.Id != id).Any(x => x.Title == editPageDetail.Title) ||
+                     db.PagesData.Where(x => x.Id != id).Any(x => x.Slug == slug))
+                {
+                    ModelState.AddModelError("", "That title or slug already exists.");
+                    return View(editPageDetail);
+                }
 
-            //DTO the rest
+                // DTO the rest
+                dto.Slug = slug;
+                dto.Body = editPageDetail.Body;
+                dto.HasSidebar = editPageDetail.HasSidebar;
 
-            //Save the DTO
+                // Save the DTO
+                db.SaveChanges();
+            }
 
             //Set TemoData Message
+            TempData["SM"] = "New values are updated";
 
             //Redirect
-            return View();
+            return RedirectToAction("EditPage");
         }
     }
 }
