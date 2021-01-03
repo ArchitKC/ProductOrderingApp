@@ -10,5 +10,6 @@ namespace ProductOrderingApp.Models.Data
     {
         public DbSet<PageDTO> PagesData { get; set; }
         public DbSet<SideBarDTO> SideBarData { get; set; }
+        public DbSet<CategoryDTO> CategoryData { get; set; }
     }
 }
