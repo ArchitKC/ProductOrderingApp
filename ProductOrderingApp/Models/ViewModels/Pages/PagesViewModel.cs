@@ -1,5 +1,6 @@
 ﻿using ProductOrderingApp.Models.Data;
 using System.ComponentModel.DataAnnotations;
+using System.Web.Mvc;
 
 namespace ProductOrderingApp.Models.ViewModels.Pages
 {
@@ -25,7 +26,8 @@ namespace ProductOrderingApp.Models.ViewModels.Pages
         public string Title { get; set; }
         public string Slug { get; set; }
         [Required]
-        [StringLength(int.MaxValue, MinimumLength = 5)]
+        [StringLength(int.MaxValue, MinimumLength = 5)]        
+        [AllowHtml]
         public string Body { get; set; }
         public int Sorting { get; set; }
         public bool HasSidebar { get; set; }
